@@ -1,0 +1,163 @@
+/* ==========================================================================
+   Markdown — design tokens
+   Aligned with GitHub Primer so the preview reads exactly like github.com.
+   Everything else (toolbar, menus, status bar) consumes only these tokens.
+   ========================================================================== */
+
+:root {
+  /* ---- Typography ---- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-editor: "Cascadia Mono", Consolas, ui-monospace, "Liberation Mono", monospace;
+  --zoom: 1;                                  /* set from JS, 0.5 .. 3 */
+  --fs-ui: 12px;                              /* chrome: status bar, menus */
+  --fs-ui-md: 13px;                           /* chrome: buttons, find bar */
+  --fs-body: calc(16px * var(--zoom));        /* markdown body (GitHub: 16px) */
+  --fs-editor: calc(14px * var(--zoom));      /* raw editor */
+  --lh-body: 1.5;
+  --fw-normal: 400;
+  --fw-semibold: 600;
+
+  /* ---- Spacing (4px grid) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+
+  /* ---- Radius / borders ---- */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --border-width: 1px;
+
+  /* ---- Layout ---- */
+  --toolbar-h: 44px;
+  --statusbar-h: 24px;
+  --content-max-w: 980px;                     /* GitHub README column */
+  --control-h: 28px;
+
+  /* ---- Motion ---- */
+  --duration-fast: 80ms;
+  --duration-base: 160ms;
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* ---- Color: light (Primer light default) ---- */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-default: #ffffff;
+  --bg-muted: #f6f8fa;
+  --bg-inset: #f6f8fa;
+  --bg-neutral-muted: #818b981f;
+  --bg-overlay: #ffffff;
+  --bg-accent-muted: #ddf4ff;
+  --bg-selection: #0969da33;
+
+  --fg-default: #1f2328;
+  --fg-muted: #59636e;
+  --fg-subtle: #818b98;
+  --fg-on-emphasis: #ffffff;
+
+  --border-default: #d1d9e0;
+  --border-muted: #d1d9e0b3;
+
+  --accent-fg: #0969da;
+  --accent-emphasis: #0969da;
+  --success-fg: #1a7f37;
+  --attention-fg: #9a6700;
+  --danger-fg: #d1242f;
+  --done-fg: #8250df;
+
+  --btn-bg: #f6f8fa;
+  --btn-bg-hover: #eff2f5;
+  --btn-bg-active: #e6eaef;
+  --btn-border: #d1d9e0;
+  --seg-bg: #eff2f5;
+  --seg-selected-bg: #ffffff;
+  --seg-selected-border: #d1d9e0;
+
+  --search-bg: #fff8c5;
+  --search-current-bg: #ffd33d;
+
+  --shadow-small: 0 1px 0 #1f23280a;
+  --shadow-overlay: 0 1px 1px #25292e1a, 0 8px 24px #42474e33;
+  --focus-ring: 0 0 0 2px #0969da;
+
+  /* syntax — Primer "prettylights" */
+  --hl-comment: #59636e;
+  --hl-constant: #0550ae;
+  --hl-entity: #6639ba;
+  --hl-tag: #0550ae;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-variable: #953800;
+  --hl-regexp: #116329;
+  --hl-heading: #0550ae;
+  --hl-inserted-fg: #116329;
+  --hl-inserted-bg: #dafbe1;
+  --hl-deleted-fg: #82071e;
+  --hl-deleted-bg: #ffebe9;
+  --hl-plain: #1f2328;
+}
+
+/* ---- Color: dark (Primer dark default) ---- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-default: #0d1117;
+  --bg-muted: #151b23;
+  --bg-inset: #010409;
+  --bg-neutral-muted: #656c7633;
+  --bg-overlay: #151b23;
+  --bg-accent-muted: #388bfd1a;
+  --bg-selection: #388bfd66;
+
+  --fg-default: #f0f6fc;
+  --fg-muted: #9198a1;
+  --fg-subtle: #656c76;
+  --fg-on-emphasis: #ffffff;
+
+  --border-default: #3d444d;
+  --border-muted: #3d444db3;
+
+  --accent-fg: #4493f8;
+  --accent-emphasis: #1f6feb;
+  --success-fg: #3fb950;
+  --attention-fg: #d29922;
+  --danger-fg: #f85149;
+  --done-fg: #ab7df8;
+
+  --btn-bg: #212830;
+  --btn-bg-hover: #262c36;
+  --btn-bg-active: #2a313c;
+  --btn-border: #3d444d;
+  --seg-bg: #151b23;
+  --seg-selected-bg: #212830;
+  --seg-selected-border: #3d444d;
+
+  --search-bg: #bb800926;
+  --search-current-bg: #bb8009aa;
+
+  --shadow-small: 0 0 transparent;
+  --shadow-overlay: 0 0 0 1px #3d444d, 0 8px 24px #010409;
+  --focus-ring: 0 0 0 2px #1f6feb;
+
+  --hl-comment: #9198a1;
+  --hl-constant: #79c0ff;
+  --hl-entity: #d2a8ff;
+  --hl-tag: #7ee787;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-variable: #ffa657;
+  --hl-regexp: #7ee787;
+  --hl-heading: #1f6feb;
+  --hl-inserted-fg: #aff5b4;
+  --hl-inserted-bg: #033a16;
+  --hl-deleted-fg: #ffdcd7;
+  --hl-deleted-bg: #67060c;
+  --hl-plain: #f0f6fc;
+}

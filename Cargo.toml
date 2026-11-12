@@ -1,0 +1,38 @@
+[package]
+name = "markdown"
+version = "1.0.0"
+edition = "2024"
+description = "Markdown"
+license = "MIT"
+
+[[bin]]
+name = "Markdown"
+path = "src/main.rs"
+
+[dependencies]
+# Window + WebView2 (system component on Windows 10/11, nothing bundled)
+tao = { version = "0.37", default-features = false, features = ["rwh_06"] }
+wry = { version = "0.57", default-features = false }
+# GitHub Flavored Markdown (tables, task lists, alerts, footnotes, emoji :shortcodes:)
+comrak = { version = "0.59", default-features = false, features = ["shortcodes"] }
+# Code highlighting with bat's extended syntax set. Oniguruma (built from C by cargo) is
+# required for PowerShell and a few other grammars that the pure-Rust regex can't run.
+syntect = { version = "5.3", default-features = false, features = ["parsing", "html", "default-syntaxes", "regex-onig"] }
+two-face = { version = "0.5.2", default-features = false, features = ["syntect-onig"] }
+# Native dialogs, registry, encodings
+rfd = { version = "0.18", default-features = false }
+winreg = "0.56"
+encoding_rs = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Globalization", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_System_Threading"] }
+
+[build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

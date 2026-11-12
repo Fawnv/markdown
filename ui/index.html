@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="{{LANG}}" data-theme="{{THEME}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src * data: blob:; media-src * data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Markdown</title>
+<link rel="stylesheet" href="/__app/tokens.css">
+<link rel="stylesheet" href="/__app/markdown.css">
+<link rel="stylesheet" href="/__app/app.css">
+<script src="/__app/app.js" defer></script>
+</head>
+<body>
+<header class="toolbar">
+  <div class="segmented" role="tablist" id="modes">
+    <button role="tab" data-mode="preview" aria-selected="true" data-i18n="preview">Preview</button>
+    <button role="tab" data-mode="raw" aria-selected="false" data-i18n="raw">Raw</button>
+    <button role="tab" data-mode="split" aria-selected="false" data-i18n="split">Split</button>
+  </div>
+  <div class="doc-title" id="doc-title">
+    <span class="doc-name" id="doc-name">Untitled</span>
+    <span class="dirty-dot" id="dirty-dot" hidden></span>
+  </div>
+  <div class="toolbar-actions">
+    <button class="btn-icon" id="btn-open" data-i18n-title="openTip">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 4.25v8a1 1 0 0 0 1 1h10.5a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H8L6.5 3.25H2.75a1 1 0 0 0-1 1Z"/></svg>
+    </button>
+    <button class="btn-icon" id="btn-save" data-i18n-title="saveTip">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.75 1.75h8.5l3 3v8.5a1 1 0 0 1-1 1H2.75a1 1 0 0 1-1-1V2.75a1 1 0 0 1 1-1Z"/><path d="M4.75 1.75v3.5h5.5v-3.5"/><path d="M4.25 14.25v-4.5h7.5v4.5"/></svg>
+    </button>
+    <button class="btn-icon" id="btn-theme" data-i18n-title="themeTip">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path class="fill" d="M8 1.75a6.25 6.25 0 0 1 0 12.5Z"/></svg>
+    </button>
+    <button class="btn-icon" id="btn-menu" aria-haspopup="menu" aria-expanded="false" data-i18n-title="menuTip">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle class="fill" cx="3" cy="8" r="1.1"/><circle class="fill" cx="8" cy="8" r="1.1"/><circle class="fill" cx="13" cy="8" r="1.1"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main" data-mode="preview">
+  <section class="pane editor-pane" id="editor-pane">
+    <div class="editor-backdrop" id="backdrop" aria-hidden="true"><div id="backdrop-inner"></div></div>
+    <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="soft"></textarea>
+  </section>
+  <div class="splitter" id="splitter" role="separator" aria-orientation="vertical"></div>
+  <section class="pane preview-pane" id="preview-pane" tabindex="-1">
+    <article class="markdown-body" id="preview"></article>
+  </section>
+</main>
+
+<div class="findbar" id="findbar" hidden>
+  <input id="find-input" type="text" spellcheck="false" autocomplete="off">
+  <span class="find-count" id="find-count"></span>
+  <button class="btn-icon sm" id="find-prev" data-i18n-title="findPrev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 10 8 5.75 12.25 10"/></svg></button>
+  <button class="btn-icon sm" id="find-next" data-i18n-title="findNext"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 6 8 10.25 12.25 6"/></svg></button>
+  <button class="btn-icon sm" id="find-close" data-i18n-title="findClose"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+</div>
+
+<footer class="statusbar">
+  <span class="st-msg" id="st-msg" role="status"></span>
+  <span class="st-spacer"></span>
+  <span class="st-item" id="st-pos"></span>
+  <span class="st-item" id="st-words"></span>
+  <button class="st-item st-btn" id="st-zoom" data-i18n-title="zoomReset">100%</button>
+  <span class="st-item" id="st-enc">UTF-8</span>
+  <button class="st-item st-btn" id="st-eol" data-i18n-title="eolTip">Windows (CRLF)</button>
+</footer>
+
+<div class="menu" id="menu" role="menu" hidden></div>
+<div class="drop-overlay" id="drop-overlay" hidden><div class="drop-card" data-i18n="dropHere">Drop a file to open it</div></div>
+<div class="mirror" id="mirror" aria-hidden="true"></div>
+</body>
+</html>
