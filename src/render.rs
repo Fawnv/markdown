@@ -19,6 +19,11 @@ const MAX_HIGHLIGHT_BYTES: usize = 256 * 1024;
 
 static SYNTAXES: OnceLock<SyntaxSet> = OnceLock::new();
 
+thread_local! {
+    /// (syntax name, code) -> highlighted HTML. Rendering runs on one worker thread.
+    static HL_CACHE: std::cell::RefCell<HashMap<(String, String), String>> = std::cell::RefCell::new(HashMap::new());
+}
+
 fn syntaxes() -> &'static SyntaxSet {
     SYNTAXES.get_or_init(two_face::syntax::extra_newlines)
 }
@@ -179,6 +184,11 @@ impl SyntaxHighlighterAdapter for Highlighter {
         let Some(syntax) = syntax else {
             return escape_html(output, code);
         };
+        // While typing, usually only one block changes: reuse the others' highlighting.
+        let key = (syntax.name.clone(), code.to_string());
+        if let Some(hit) = HL_CACHE.with(|c| c.borrow().get(&key).cloned()) {
+            return output.write_str(&hit);
+        }
         let mut generator = ClassedHTMLGenerator::new_with_class_style(
             syntax,
             syntaxes(),
@@ -189,7 +199,15 @@ impl SyntaxHighlighterAdapter for Highlighter {
                 return escape_html(output, code);
             }
         }
-        output.write_str(&generator.finalize())
+        let html = generator.finalize();
+        HL_CACHE.with(|c| {
+            let mut c = c.borrow_mut();
+            if c.len() >= 512 {
+                c.clear();
+            }
+            c.insert(key, html.clone());
+        });
+        output.write_str(&html)
     }
 
     fn write_pre_tag(&self, output: &mut dyn fmt::Write, attributes: HashMap<&'static str, Cow<'_, str>>) -> fmt::Result {

@@ -74,9 +74,7 @@ const state = {
   renderSeq: 0,
   renderedText: null,
   inflightText: null,
-  renderedSeq: 0,
-  renderSentAt: 0,
-  renderCost: 30,
+  renderPending: false,
   afterRender: [],
   shown: false,
   settings: { theme: 'auto', wrap: true, zoom: 1, split: 0.5 },
@@ -123,7 +121,9 @@ function onDoc(msg) {
   state.savedEol = state.eol;
   editor.value = msg.text;
   state.renderedText = null;
-  state.inflightText = null;
+  state.inflightText = null;  // a render still in flight for the old text will be ignored (seq bump below)
+  state.renderPending = false;
+  state.renderSeq += 1;
   lineCache = null;
   setDirty(false);
   updateTitle();
@@ -159,48 +159,83 @@ function reveal() {
   requestAnimationFrame(() => (state.mode === 'preview' ? previewPane : editor).focus({ preventScroll: true }));
 }
 
-/* ----------------------------------------------------------- rendering -- */
-let renderTimer = 0;
-function requestRender(immediate = false) {
-  clearTimeout(renderTimer);
-  const go = () => {
-    const text = editor.value;
-    if (state.renderedText === text || state.inflightText === text) return;
-    state.renderSeq += 1;
-    state.inflightText = text;
-    state.renderSentAt = performance.now();
-    send('render', { text, seq: state.renderSeq });
-  };
-  if (immediate) go();
-  else renderTimer = setTimeout(go, Math.min(400, 60 + state.renderCost * 2));
+/* ----------------------------------------------------------- rendering --
+   Pipeline, not debounce: at most one render is in flight; keystrokes made
+   meanwhile are folded into the next request, sent the moment the previous
+   result lands. The preview keeps up with typing at the renderer's real speed. */
+function requestRender() {
+  const text = editor.value;
+  if (state.renderedText === text) return;
+  if (state.inflightText !== null) {
+    if (state.inflightText !== text) state.renderPending = true;
+    return;
+  }
+  state.renderSeq += 1;
+  state.inflightText = text;
+  send('render', { text, seq: state.renderSeq });
 }
 
 function whenRendered(fn) {
   if (state.renderedText === editor.value) fn();
-  else { state.afterRender.push(fn); requestRender(true); }
+  else { state.afterRender.push(fn); requestRender(); }
 }
 
 function onRendered(msg) {
-  if (msg.seq < state.renderedSeq) return;
-  state.renderedSeq = msg.seq;
-  state.renderCost = performance.now() - state.renderSentAt;
-  const scrollTop = previewPane.scrollTop;
-  preview.replaceChildren(sanitize(msg.html));
-  if (!preview.firstChild) {
+  if (msg.seq !== state.renderSeq) return; // superseded (e.g. another document was opened)
+  state.renderedText = state.inflightText;
+  state.inflightText = null;
+  patchPreview(sanitize(msg.html));
+  blockCache = null;
+  if (state.renderPending) {
+    state.renderPending = false;
+    if (state.mode !== 'raw' || state.afterRender.length) requestRender();
+  }
+  if (state.renderedText === editor.value) state.afterRender.splice(0).forEach((fn) => fn());
+  if (findOpen && findSurface() === 'preview') runFind(false);
+}
+
+/* Replace only the top-level blocks that actually changed. Unchanged blocks keep
+   their DOM (no image reloads, <details> stay open, cheap layout); blocks after
+   the edit just get their shifted data-sourcepos copied over. */
+const blockKey = (n) => (n.nodeType === 1 ? n.outerHTML.replace(/ data-sourcepos="[^"]*"/g, '')
+  : n.nodeType === 3 ? `#${n.data}` : '');
+
+function patchPreview(frag) {
+  const next = [...frag.childNodes];
+  if (!next.some((n) => n.nodeType === 1 || n.textContent.trim())) {
     const p = document.createElement('p');
     p.className = 'empty-hint';
     p.textContent = T.emptyPreview;
-    preview.append(p);
+    p.__key = '';
+    preview.replaceChildren(p);
+    return;
   }
-  previewPane.scrollTop = scrollTop;
-  blockCache = null;
-  if (msg.seq === state.renderSeq) {
-    state.renderedText = state.inflightText;
-    state.inflightText = null;
-    const queue = state.afterRender.splice(0);
-    queue.forEach((fn) => fn());
+  const nextKeys = next.map(blockKey);
+  const prev = [...preview.childNodes];
+  let start = 0;
+  while (start < prev.length && start < next.length && prev[start].__key === nextKeys[start]) start++;
+  let endPrev = prev.length - 1;
+  let endNext = next.length - 1;
+  while (endPrev >= start && endNext >= start && prev[endPrev].__key === nextKeys[endNext]) {
+    copySourcepos(next[endNext], prev[endPrev]);
+    endPrev--; endNext--;
   }
-  if (findOpen && findSurface() === 'preview') runFind(false);
+  const anchor = prev[endPrev + 1] || null;
+  for (let i = start; i <= endPrev; i++) prev[i].remove();
+  for (let i = start; i <= endNext; i++) {
+    next[i].__key = nextKeys[i];
+    preview.insertBefore(next[i], anchor);
+  }
+}
+
+function copySourcepos(from, to) {
+  if (from.nodeType !== 1) return;
+  const a = [from, ...from.querySelectorAll('[data-sourcepos]')];
+  const b = [to, ...to.querySelectorAll('[data-sourcepos]')];
+  for (let i = 0; i < a.length && i < b.length; i++) {
+    const v = a[i].getAttribute('data-sourcepos');
+    if (v !== null && b[i].getAttribute('data-sourcepos') !== v) b[i].setAttribute('data-sourcepos', v);
+  }
 }
 
 /* Keep GitHub's rules: no scripts, no styles, no event handlers, no js: URLs. */
@@ -261,7 +296,7 @@ function setMode(mode, { keepPosition = true } = {}) {
   document.querySelectorAll('#modes [data-mode]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
   lineCache = null;
   blockCache = null; // pane widths changed
-  if (mode !== 'raw') requestRender(true);
+  if (mode !== 'raw') requestRender();
   if (line != null) {
     if (mode === 'raw') scrollEditorToLine(line);
     else whenRendered(() => {

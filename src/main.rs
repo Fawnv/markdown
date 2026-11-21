@@ -348,7 +348,7 @@ impl App {
 
     fn update_title(&self) {
         let star = if self.doc.dirty { "*" } else { "" };
-        self.window.set_title(&format!("{star}{} — Markdown", self.display_name()));
+        self.window.set_title(&format!("{star}{} – Markdown", self.display_name()));
     }
 
     fn set_path(&mut self, path: Option<PathBuf>, mtime: Option<SystemTime>) {
